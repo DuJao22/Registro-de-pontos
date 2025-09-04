@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastrar Funcionário{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-user-plus me-2"></i>Cadastrar Novo Funcionário
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">
+                            <i class="fas fa-user me-1"></i>Nome Completo *
+                        </label>
+                        <input type="text" class="form-control" id="nome" name="nome" required
+                               placeholder="Digite o nome completo">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cpf" class="form-label">
+                            <i class="fas fa-id-card me-1"></i>CPF *
+                        </label>
+                        <input type="text" class="form-control" id="cpf" name="cpf" required
+                               placeholder="000.000.000-00" maxlength="14">
+                        <div class="form-text">Digite apenas números ou com formatação.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="funcao" class="form-label">
+                            <i class="fas fa-briefcase me-1"></i>Função/Cargo *
+                        </label>
+                        <input type="text" class="form-control" id="funcao" name="funcao" required
+                               placeholder="Ex: Vendedor, Analista, Gerente">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="login" class="form-label">
+                            <i class="fas fa-at me-1"></i>Login *
+                        </label>
+                        <input type="text" class="form-control" id="login" name="login" required
+                               placeholder="Digite um login único">
+                        <div class="form-text">Este será usado para fazer login no sistema.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="senha" class="form-label">
+                            <i class="fas fa-lock me-1"></i>Senha *
+                        </label>
+                        <input type="password" class="form-control" id="senha" name="senha" required
+                               placeholder="Digite uma senha">
+                        <div class="form-text">Mínimo 6 caracteres recomendado.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i>Cadastrar Funcionário
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Help Card -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-info-circle me-1"></i>Informações Importantes
+                </h6>
+                <ul class="mb-0 small">
+                    <li>Todos os campos marcados com * são obrigatórios</li>
+                    <li>O CPF deve ser único no sistema</li>
+                    <li>O login deve ser único e será usado para acesso</li>
+                    <li>A senha pode ser alterada posteriormente pelo funcionário</li>
+                    <li>Funcionários cadastrados podem registrar pontos imediatamente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Format CPF input
+document.getElementById('cpf').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = value;
+    }
+});
+
+// Validate form before submit
+document.querySelector('form').addEventListener('submit', function(e) {
+    const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
+    const senha = document.getElementById('senha').value;
+    
+    if (cpf.length !== 11) {
+        e.preventDefault();
+        alert('CPF deve ter 11 dígitos!');
+        return;
+    }
+    
+    if (senha.length < 6) {
+        e.preventDefault();
+        alert('Senha deve ter pelo menos 6 caracteres!');
+        return;
+    }
+});
+</script>
+{% endblock %}

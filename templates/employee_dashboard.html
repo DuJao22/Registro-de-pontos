@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Painel do Funcionário{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-clock me-2"></i>Registrar Ponto
+        </h2>
+    </div>
+</div>
+
+<!-- Current Time Display -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="card-title">
+                    <i class="fas fa-calendar-day me-2"></i>{{ today }}
+                </h3>
+                <h1 id="current-time" class="display-4 mb-0"></h1>
+                <p class="mb-0">Horário atual</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Punch Registration -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-hand-point-up me-2"></i>Registrar Ponto
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if next_punch %}
+                <form method="POST" action="{{ url_for('register_punch') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Próximo Ponto:</label>
+                        <div class="alert alert-info">
+                            <strong>
+                                {% if next_punch == 'entrada' %}
+                                    <i class="fas fa-sign-in-alt me-1"></i>Entrada
+                                {% elif next_punch == 'saida_almoco' %}
+                                    <i class="fas fa-utensils me-1"></i>Saída para Almoço
+                                {% elif next_punch == 'volta_almoco' %}
+                                    <i class="fas fa-undo me-1"></i>Volta do Almoço
+                                {% elif next_punch == 'saida_final' %}
+                                    <i class="fas fa-sign-out-alt me-1"></i>Saída Final
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observacao" class="form-label">
+                            <i class="fas fa-comment me-1"></i>Observação (opcional)
+                        </label>
+                        <textarea class="form-control" id="observacao" name="observacao" rows="3" 
+                                placeholder="Ex: Consulta médica, reunião externa, etc."></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-fingerprint me-2"></i>Registrar Ponto
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h5 class="text-success">Todos os pontos do dia foram registrados!</h5>
+                    <p class="text-muted">Você já registrou todos os 4 pontos obrigatórios de hoje.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i>Pontos de Hoje
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if today_punches %}
+                <div class="list-group list-group-flush">
+                    {% for punch in today_punches %}
+                    <div class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">
+                                {% if punch.tipo == 'entrada' %}
+                                    <i class="fas fa-sign-in-alt text-success me-1"></i>Entrada
+                                {% elif punch.tipo == 'saida_almoco' %}
+                                    <i class="fas fa-utensils text-warning me-1"></i>Saída para Almoço
+                                {% elif punch.tipo == 'volta_almoco' %}
+                                    <i class="fas fa-undo text-info me-1"></i>Volta do Almoço
+                                {% elif punch.tipo == 'saida_final' %}
+                                    <i class="fas fa-sign-out-alt text-danger me-1"></i>Saída Final
+                                {% endif %}
+                            </div>
+                            {% if punch.observacao %}
+                            <small class="text-muted">{{ punch.observacao }}</small>
+                            {% endif %}
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ punch.hora[:5] }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                    <h6 class="text-muted">Nenhum ponto registrado hoje</h6>
+                    <p class="text-muted small">Registre sua entrada para começar.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Punch Types Info -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Tipos de Ponto
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-sign-in-alt fa-2x text-success mb-2"></i>
+                            <h6>1. Entrada</h6>
+                            <small class="text-muted">Chegada ao trabalho</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-utensils fa-2x text-warning mb-2"></i>
+                            <h6>2. Saída Almoço</h6>
+                            <small class="text-muted">Saída para almoço</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-undo fa-2x text-info mb-2"></i>
+                            <h6>3. Volta Almoço</h6>
+                            <small class="text-muted">Retorno do almoço</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-sign-out-alt fa-2x text-danger mb-2"></i>
+                            <h6>4. Saída Final</h6>
+                            <small class="text-muted">Final da jornada</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Update current time display
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    document.getElementById('current-time').textContent = timeString;
+}
+
+// Update time immediately and then every second
+updateTime();
+setInterval(updateTime, 1000);
+</script>
+{% endblock %}

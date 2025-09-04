@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Administrativo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrativo
+        </h2>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Total de Funcionários</h5>
+                        <h3 class="mb-0">{{ total_employees }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Data de Hoje</h5>
+                        <h6 class="mb-0">{{ today }}</h6>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Status do Dia</h5>
+                        <h6 class="mb-0">Monitoramento Ativo</h6>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Attendance -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clipboard-list me-2"></i>Frequência de Hoje - {{ today }}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if employees_today %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Funcionário</th>
+                                <th>Função</th>
+                                <th class="text-center">Entrada</th>
+                                <th class="text-center">Saída Almoço</th>
+                                <th class="text-center">Volta Almoço</th>
+                                <th class="text-center">Saída Final</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employees_today %}
+                            <tr>
+                                <td>
+                                    <strong>{{ employee.nome }}</strong>
+                                </td>
+                                <td>{{ employee.funcao }}</td>
+                                <td class="text-center">
+                                    {% if employee.entrada > 0 %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if employee.saida_almoco > 0 %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if employee.volta_almoco > 0 %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if employee.saida_final > 0 %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% set total_punches = employee.entrada + employee.saida_almoco + employee.volta_almoco + employee.saida_final %}
+                                    {% if total_punches == 4 %}
+                                        <span class="badge bg-success">Completo</span>
+                                    {% elif total_punches > 0 %}
+                                        <span class="badge bg-warning">Em andamento</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Ausente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhum funcionário cadastrado</h5>
+                    <p class="text-muted">Cadastre funcionários para começar a monitorar a frequência.</p>
+                    <a href="{{ url_for('register_employee') }}" class="btn btn-success">
+                        <i class="fas fa-user-plus me-1"></i>Cadastrar Primeiro Funcionário
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Ações Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('register_employee') }}" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-user-plus d-block mb-2"></i>
+                            Cadastrar Funcionário
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('punch_history') }}" class="btn btn-info btn-lg w-100">
+                            <i class="fas fa-history d-block mb-2"></i>
+                            Ver Histórico
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('reports') }}" class="btn btn-warning btn-lg w-100">
+                            <i class="fas fa-chart-bar d-block mb-2"></i>
+                            Relatórios
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-secondary btn-lg w-100" onclick="refreshPage()">
+                            <i class="fas fa-sync-alt d-block mb-2"></i>
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function refreshPage() {
+    location.reload();
+}
+
+// Auto-refresh every 30 seconds
+setInterval(function() {
+    location.reload();
+}, 30000);
+</script>
+{% endblock %}

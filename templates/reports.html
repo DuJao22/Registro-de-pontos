@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-chart-bar me-2"></i>Relatórios de Frequência
+        </h2>
+    </div>
+</div>
+
+<!-- Date Range Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-filter me-1"></i>Filtros do Relatório
+                </h6>
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="employee_id" class="form-label">Funcionário</label>
+                        <select class="form-select" id="employee_id" name="employee_id">
+                            <option value="">Todos os Funcionários</option>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}" {% if employee_id and employee_id|string == emp.id|string %}selected{% endif %}>
+                                {{ emp.nome }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="start_date" class="form-label">Data Inicial</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" 
+                               value="{{ start_date }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end_date" class="form-label">Data Final</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" 
+                               value="{{ end_date }}">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>Gerar Relatório
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="setCurrentMonth()">
+                            <i class="fas fa-calendar me-1"></i>Mês Atual
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Data -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-table me-2"></i>Relatório de Frequência
+                    <small class="text-muted">({{ start_date }} até {{ end_date }})</small>
+                </h5>
+                <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>Imprimir
+                </button>
+            </div>
+            <div class="card-body">
+                {% if report_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Funcionário</th>
+                                <th>Função</th>
+                                <th class="text-center">Dias Trabalhados</th>
+                                <th class="text-center">Dias com Registro</th>
+                                <th class="text-center">Total de Pontos</th>
+                                <th class="text-center">Frequência</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in report_data %}
+                            <tr>
+                                <td>
+                                    <strong>{{ employee.nome }}</strong>
+                                </td>
+                                <td>{{ employee.funcao }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">{{ employee.dias_trabalhados }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">{{ employee.dias_com_registro }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ employee.total_pontos }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% if employee.dias_trabalhados > 0 %}
+                                        {% set freq_percent = (employee.dias_trabalhados / 30 * 100) | round(1) %}
+                                        {% if freq_percent >= 95 %}
+                                            <span class="badge bg-success">{{ freq_percent }}%</span>
+                                        {% elif freq_percent >= 80 %}
+                                            <span class="badge bg-warning">{{ freq_percent }}%</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ freq_percent }}%</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-secondary">0%</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Detailed Time Punches for Selected Employee -->
+                {% if employee_id and punches_by_date %}
+                <div class="mt-4">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-clock me-2"></i>Detalhes dos Horários - {{ employee_name }}
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% for date, punches in punches_by_date.items() %}
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <strong>
+                                                <i class="fas fa-calendar-day me-1"></i>
+                                                {# Convert YYYY-MM-DD to DD-MM-YYYY #}
+                                                {% set date_parts = date.split('-') %}
+                                                {{ date_parts[2] }}-{{ date_parts[1] }}-{{ date_parts[0] }}
+                                            </strong>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                {% for punch in punches %}
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="text-center">
+                                                        {% if punch.tipo == 'entrada' %}
+                                                            <div class="badge bg-success p-2 w-100">
+                                                                <i class="fas fa-sign-in-alt me-1"></i>Entrada<br>
+                                                                <strong>{{ punch.hora[:5] }}</strong>
+                                                            </div>
+                                                        {% elif punch.tipo == 'saida_almoco' %}
+                                                            <div class="badge bg-warning p-2 w-100">
+                                                                <i class="fas fa-utensils me-1"></i>Saída Almoço<br>
+                                                                <strong>{{ punch.hora[:5] }}</strong>
+                                                            </div>
+                                                        {% elif punch.tipo == 'volta_almoco' %}
+                                                            <div class="badge bg-info p-2 w-100">
+                                                                <i class="fas fa-arrow-left me-1"></i>Volta Almoço<br>
+                                                                <strong>{{ punch.hora[:5] }}</strong>
+                                                            </div>
+                                                        {% elif punch.tipo == 'saida_final' %}
+                                                            <div class="badge bg-danger p-2 w-100">
+                                                                <i class="fas fa-sign-out-alt me-1"></i>Saída Final<br>
+                                                                <strong>{{ punch.hora[:5] }}</strong>
+                                                            </div>
+                                                        {% endif %}
+                                                        {% if punch.observacao %}
+                                                        <small class="text-muted d-block mt-1">{{ punch.observacao }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% elif employee_id and not punches_by_date %}
+                <div class="mt-4">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        <strong>Nenhum ponto encontrado</strong> para {{ employee_name }} no período selecionado.
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Summary Statistics -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>
+                            <i class="fas fa-chart-pie me-1"></i>Estatísticas do Período
+                        </h6>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h4 class="card-title">{{ report_data | length }}</h4>
+                                <p class="card-text mb-0">Total de Funcionários</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                {% set total_days = report_data | sum(attribute='dias_trabalhados') %}
+                                <h4 class="card-title">{{ total_days }}</h4>
+                                <p class="card-text mb-0">Total Dias Trabalhados</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                {% set total_punches = report_data | sum(attribute='total_pontos') %}
+                                <h4 class="card-title">{{ total_punches }}</h4>
+                                <p class="card-text mb-0">Total de Pontos</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                {% if report_data | length > 0 %}
+                                    {% set avg_freq = (total_days / (report_data | length * 30) * 100) | round(1) %}
+                                    <h4 class="card-title">{{ avg_freq }}%</h4>
+                                {% else %}
+                                    <h4 class="card-title">0%</h4>
+                                {% endif %}
+                                <p class="card-text mb-0">Frequência Média</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detailed Analysis -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-info-circle me-1"></i>Análise Detalhada
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong>Funcionários com Alta Frequência (≥95%):</strong>
+                                        <ul class="mt-2">
+                                            {% for employee in report_data %}
+                                                {% if employee.dias_trabalhados > 0 %}
+                                                    {% set freq = (employee.dias_trabalhados / 30 * 100) %}
+                                                    {% if freq >= 95 %}
+                                                    <li class="text-success">{{ employee.nome }}</li>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Funcionários com Frequência Média (80-94%):</strong>
+                                        <ul class="mt-2">
+                                            {% for employee in report_data %}
+                                                {% if employee.dias_trabalhados > 0 %}
+                                                    {% set freq = (employee.dias_trabalhados / 30 * 100) %}
+                                                    {% if freq >= 80 and freq < 95 %}
+                                                    <li class="text-warning">{{ employee.nome }}</li>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Funcionários com Baixa Frequência (<80%):</strong>
+                                        <ul class="mt-2">
+                                            {% for employee in report_data %}
+                                                {% if employee.dias_trabalhados == 0 or (employee.dias_trabalhados / 30 * 100) < 80 %}
+                                                <li class="text-danger">{{ employee.nome }}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhum dado encontrado</h5>
+                    <p class="text-muted">
+                        Não há registros de ponto para o período selecionado ou não há funcionários cadastrados.
+                    </p>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-success">
+                        <i class="fas fa-tachometer-alt me-1"></i>Voltar ao Dashboard
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Options -->
+{% if report_data %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-download me-1"></i>Opções de Exportação
+                </h6>
+                
+                {% if employee_id %}
+                    <p class="text-muted small">Baixe o relatório detalhado de <strong>{{ employee_name }}</strong> em diferentes formatos.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('print_report', start_date=start_date, end_date=end_date, employee_id=employee_id) }}" 
+                           class="btn btn-primary" target="_blank">
+                            <i class="fas fa-print me-1"></i>Versão para Impressão
+                        </a>
+                        <a href="{{ url_for('export_reports', format='excel', start_date=start_date, end_date=end_date, employee_id=employee_id) }}" 
+                           class="btn btn-success">
+                            <i class="fas fa-file-excel me-1"></i>Exportar Relatório Detalhado (Excel)
+                        </a>
+                        <a href="{{ url_for('export_reports', format='pdf', start_date=start_date, end_date=end_date, employee_id=employee_id) }}" 
+                           class="btn btn-danger">
+                            <i class="fas fa-file-pdf me-1"></i>Exportar Relatório Detalhado (PDF)
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted small">Baixe os relatórios em diferentes formatos.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('export_reports', format='csv', start_date=start_date, end_date=end_date) }}" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-file-csv me-1"></i>Exportar CSV
+                        </a>
+                        <a href="{{ url_for('export_reports', format='excel', start_date=start_date, end_date=end_date) }}" 
+                           class="btn btn-outline-success">
+                            <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                        </a>
+                        <a href="{{ url_for('export_reports', format='pdf', start_date=start_date, end_date=end_date) }}" 
+                           class="btn btn-outline-danger">
+                            <i class="fas fa-file-pdf me-1"></i>Exportar PDF
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function setCurrentMonth() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    
+    document.getElementById('start_date').value = `${year}-${month}-01`;
+    document.getElementById('end_date').value = now.toISOString().split('T')[0];
+}
+
+// Set default dates if empty
+window.addEventListener('DOMContentLoaded', function() {
+    const startDate = document.getElementById('start_date');
+    const endDate = document.getElementById('end_date');
+    
+    if (!startDate.value || !endDate.value) {
+        setCurrentMonth();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Ponto - {{ employee.nome }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            background: #fff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .employee-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .employee-info h2 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .employee-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        
+        .points-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .points-table th,
+        .points-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #333;
+            vertical-align: middle;
+        }
+        
+        .points-table th {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .points-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .points-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        
+        .date-cell {
+            font-weight: bold;
+            background-color: #ecf0f1 !important;
+            color: #2c3e50;
+            min-width: 80px;
+        }
+        
+        .employee-cell {
+            font-weight: bold;
+            color: #2c3e50;
+            min-width: 120px;
+        }
+        
+        .time-cell {
+            min-width: 70px;
+            font-size: 13px;
+        }
+        
+        .time {
+            font-weight: bold;
+            color: #27ae60;
+            font-size: 14px;
+        }
+        
+        .no-punch {
+            color: #95a5a6;
+            font-style: italic;
+        }
+        
+        .observation-cell {
+            min-width: 120px;
+            max-width: 200px;
+            font-size: 11px;
+            text-align: left;
+            padding: 8px;
+        }
+        
+        .observation {
+            color: #34495e;
+            font-style: italic;
+            word-wrap: break-word;
+        }
+        
+        .no-observation {
+            color: #95a5a6;
+            font-style: italic;
+            text-align: center;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .summary-info {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .summary-info strong {
+            color: #2c3e50;
+        }
+        
+        @media print {
+            body {
+                font-size: 11px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .date-section {
+                page-break-inside: avoid;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .print-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">
+        🖨️ Imprimir Relatório
+    </button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>RELATÓRIO DE CONTROLE DE PONTO</h1>
+            <div class="summary-info">
+                <strong>Período:</strong> {{ start_date }} a {{ end_date }}
+            </div>
+        </div>
+        
+        <div class="employee-info">
+            <h2>{{ employee.nome }}</h2>
+            <p><strong>Função:</strong> {{ employee.funcao }}</p>
+        </div>
+        
+        {% if punches_by_date %}
+            <table class="points-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Funcionário</th>
+                        <th>Entrada</th>
+                        <th>Saída Almoço</th>
+                        <th>Volta Almoço</th>
+                        <th>Fim Expediente</th>
+                        <th>Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for date, punches in punches_by_date.items() %}
+                    <tr>
+                        <td class="date-cell">
+                            {# Convert YYYY-MM-DD to DD-MM-YYYY #}
+                            {% set date_parts = date.split('-') %}
+                            {{ date_parts[2] }}-{{ date_parts[1] }}-{{ date_parts[0] }}
+                        </td>
+                        <td class="employee-cell">{{ employee.nome }}</td>
+                        <td class="time-cell">
+                            {% if punches.entrada %}
+                                <span class="time">{{ punches.entrada.hora }}</span>
+                            {% else %}
+                                <span class="no-punch">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="time-cell">
+                            {% if punches.saida_almoco %}
+                                <span class="time">{{ punches.saida_almoco.hora }}</span>
+                            {% else %}
+                                <span class="no-punch">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="time-cell">
+                            {% if punches.volta_almoco %}
+                                <span class="time">{{ punches.volta_almoco.hora }}</span>
+                            {% else %}
+                                <span class="no-punch">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="time-cell">
+                            {% if punches.saida_final %}
+                                <span class="time">{{ punches.saida_final.hora }}</span>
+                            {% else %}
+                                <span class="no-punch">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="observation-cell">
+                            {% set observations = [] %}
+                            {% if punches.entrada and punches.entrada.observacao %}
+                                {% set _ = observations.append(punches.entrada.observacao) %}
+                            {% endif %}
+                            {% if punches.saida_almoco and punches.saida_almoco.observacao %}
+                                {% set _ = observations.append(punches.saida_almoco.observacao) %}
+                            {% endif %}
+                            {% if punches.volta_almoco and punches.volta_almoco.observacao %}
+                                {% set _ = observations.append(punches.volta_almoco.observacao) %}
+                            {% endif %}
+                            {% if punches.saida_final and punches.saida_final.observacao %}
+                                {% set _ = observations.append(punches.saida_final.observacao) %}
+                            {% endif %}
+                            {% if observations %}
+                                <span class="observation">{{ observations|join(' | ') }}</span>
+                            {% else %}
+                                <span class="no-observation">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-data">
+                📋 Nenhum registro de ponto encontrado para o período selecionado.
+            </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>Relatório gerado em {{ "now"|strftime("%d/%m/%Y às %H:%M") }}</p>
+            <p>Sistema de Controle de Ponto Eletrônico</p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-focus for printing
+        window.addEventListener('load', function() {
+            // Optional: Auto-print when page loads (uncomment if desired)
+            // window.print();
+        });
+    </script>
+</body>
+</html>
